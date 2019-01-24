@@ -7,10 +7,11 @@
     <StartupFile>P450Titration.py</StartupFile>
     <SearchPath>
     </SearchPath>
-    <WorkingDirectory>.</WorkingDirectory>
+    <WorkingDirectory>C:\Users\donov\source\repos\P450Titration\P450Titration</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>P450Titration</Name>
     <RootNamespace>P450Titration</RootNamespace>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,6 +23,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="P450Titration.py" />
+    <Compile Include="pandastabletest.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="spectra.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
