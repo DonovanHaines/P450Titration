@@ -2,6 +2,7 @@ import pandas
 from tkinter import *
 
 import numpy as np
+from scipy.optimize import optimize
 
 ######################################################################
 ######################################################################
@@ -27,7 +28,15 @@ class uvvis_spectrum:
   # borrowed from https://stackoverflow.com/questions/1535327/how-to-print-objects-of-class-using-print
   def __str__(self):
     return str(self.__class__) + ": " + str(self.__dict__)   
+  
 
+def baseline_correct(self, reference_spectra=None, fit_bg=True, fit_scatter=True, fit_gaussian=True):
+    if reference_spectra==None:
+        numref=0
+        def fit_function(wavelength, )
+    else:
+        numref = reference_spectra.number_spectra
+    
 
 
 ######################################################################

@@ -1,5 +1,6 @@
 from tkinter import *  #to use graphical user interface (windowed program)
 from tkinter import filedialog
+import tkinter.messagebox
 import pandas
 from pandastable import Table, TableModel
 
@@ -31,6 +32,18 @@ class MyGUI:
       menu.add_cascade(label='File', menu=new_item)
       master.config(menu=menu)
       
+      
+      new_item2=Menu(menu)
+      new_item2.add_command(label="Baseline Correct", command=self.baseline)
+      new_item2.add_command(label="Fit simple binding", command=self.fitsimple)
+      new_item2.add_command(label="Fit coop binding", command=self.fitcoop)
+      menu.add_cascade(label="Analyze", menu=new_item2)
+
+      new_item3=Menu(menu)
+      new_item3.add_command(label="About this program", command=self.about)
+      menu.add_cascade(label="Help", menu=new_item3)
+
+
     
     def greet(self):
       print("Greetings!")
@@ -67,6 +80,19 @@ class MyGUI:
       self.ref_filename = filedialog.askopenfilename()
       print(self.ref_filename)
       self.ref_data=pandas.read_csv(self.ref_filename, header=None)
+    
+    def baseline(self):
+        return
+
+    def fitsimple(self):
+        return
+
+    def fitcoop(self):
+        return
+
+    def about(self):
+        tkinter.messagebox.showinfo("About this program", "P450 Titration Analysis by Donovan C. Haines, Sam Houston State University")
+        return
 
 
 
