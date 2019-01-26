@@ -49,7 +49,7 @@ class uvvis_spectrum:
     def bg(x, bg_val):
         return bg_val
     def scatter(x, scatter_int, scatter_a, scatter_power):  #or fix scatter_power to -4
-        return scatter_int*math.log(1/(1-scatter_a*x^scatter_power),base=10)
+        return scatter_int*math.log(1/(1-scatter_a*pandas.to_numeric(x)^scatter_power),base=10)
     def ref1(x, refcoef1):
         return refcoef1*reference_spectra.spectra[0].absorbance[bisect.bisect(reference_spectra.spectra[0].wavelength, x)]
     def ref2(x, refcoef1, refcoef2):
@@ -61,7 +61,8 @@ class uvvis_spectrum:
                refcoef3*reference_spectra.spectra[2].absorbance[bisect.bisect(reference_spectra.spectra[2].wavelength, x)] 
     def gaussian(x, amp, cen, wid):
         "1-d gaussian: gaussian(x, amp, cen, wid)"
-        return (amp/(math.sqrt(2*math.pi)*wid)) * math.exp(-(x-cen)**2 /(2*wid**2))
+        
+        return (amp/(math.sqrt(2*math.pi)*wid)) * math.exp(-(pandas.to_numeric(x)-cen)**2 /(2*wid**2))
     def null_model(x):
         return 0
 
@@ -112,14 +113,14 @@ class uvvis_spectrum:
         params['cen'].value = 260
         params['wid'].value = 100
     if 'refcoef1' in params:
-        params['refcoef1'].value=1.0/(newsum+0.001)
+        params['refcoef1'].value=1.0/(numref+0.001)
     if 'refcoef2' in params:
-        params['refcoef2'].value=1.0/(newsum+0.001)
+        params['refcoef2'].value=1.0/(numref+0.001)
     if 'refcoef3' in params:
-        params['refcoef3'].value=1.0/(newsum+0.001)
+        params['refcoef3'].value=1.0/(numref+0.001)
 
 
-
+    print("Parameters set, preparing to fit background.")
     result = overall_model.fit(pandas.to_numeric(self.absorbance), params, x = pandas.to_numeric(self.wavelengths))
     print(result.fit_report())
       
