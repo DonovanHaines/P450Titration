@@ -2,7 +2,11 @@ import pandas
 from tkinter import *
 
 import numpy as np
+import math
 from scipy.optimize import optimize
+from lmfit import Model
+
+import bisect
 
 ######################################################################
 ######################################################################
@@ -30,12 +34,97 @@ class uvvis_spectrum:
     return str(self.__class__) + ": " + str(self.__dict__)   
   
 
-def baseline_correct(self, reference_spectra=None, fit_bg=True, fit_scatter=True, fit_gaussian=True):
+  def baseline_correct(self, reference_spectra=None, fit_bg=True, fit_scatter=True, fit_gaussian=True):
     if reference_spectra==None:
         numref=0
-        def fit_function(wavelength, )
+        print("Numref")
+        print(numref)
     else:
+      if type(reference_spectra==spectral_collection):
         numref = reference_spectra.number_spectra
+      else:
+        print("Warning - Exiting baseline_correct due to wrong reference_spectra type.")
+        return
+    #####model functions
+    def bg(x, bg_val):
+        return bg_val
+    def scatter(x, scatter_int, scatter_a, scatter_power):  #or fix scatter_power to -4
+        return scatter_int*math.log(1/(1-scatter_a*x^scatter_power),base=10)
+    def ref1(x, refcoef1):
+        return refcoef1*reference_spectra.spectra[0].absorbance[bisect.bisect(reference_spectra.spectra[0].wavelength, x)]
+    def ref2(x, refcoef1, refcoef2):
+        return refcoef1*reference_spectra.spectra[0].absorbance[bisect.bisect(reference_spectra.spectra[0].wavelength, x)] + \
+               refcoef2*reference_spectra.spectra[1].absorbance[bisect.bisect(reference_spectra.spectra[1].wavelength, x)]
+    def ref3(x, refcoef1, refcoef2, refcoef3):
+        return refcoef1*reference_spectra.spectra[0].absorbance[bisect.bisect(reference_spectra.spectra[0].wavelength, x)] + \
+               refcoef2*reference_spectra.spectra[1].absorbance[bisect.bisect(reference_spectra.spectra[1].wavelength, x)] + \
+               refcoef3*reference_spectra.spectra[2].absorbance[bisect.bisect(reference_spectra.spectra[2].wavelength, x)] 
+    def gaussian(x, amp, cen, wid):
+        "1-d gaussian: gaussian(x, amp, cen, wid)"
+        return (amp/(math.sqrt(2*math.pi)*wid)) * math.exp(-(x-cen)**2 /(2*wid**2))
+    def null_model(x):
+        return 0
+
+
+    if fit_gaussian: 
+        gaussian_part = Model(gaussian)
+    else: 
+        gaussian_part = Model(null_model)
+
+    if fit_scatter:
+        scatter_part = Model(scatter)
+    else:
+        scatter_part = Model(null_model)
+    
+    if fit_bg:
+        bg_part = Model(bg)
+    else:
+        bg_part = Model(null_model)
+
+    if numref>0: reference_coefs = np.repeat(1/numref, numref)
+    
+    if numref == 1:
+        ref_part = Model(ref1)
+    elif numref == 2:
+        ref_part = Model(ref2)
+    elif numref == 3:
+        ref_part = Model(ref3)
+    elif numref > 3:
+        ref_part = Model(ref3)
+        print("Warning: Only three reference spectra can currently be fit")
+    else:
+        ref_part = Model(null_model)
+
+    overall_model = ref_part + bg_part + scatter_part + gaussian_part
+    params=overall_model.make_params()
+    print("Fit parameters")
+    print(params)
+    if 'bg_val' in params:
+        params['bg_val'].value = 0.0
+    if 'scatter_int' in params:
+        params['scatter_int'].value = 1
+        params['scatter_a'].value = 1.e7
+        params['scatter_power'].value = -4
+        params['scatter_power'].min = -4
+        params['scatter_power'].max = 4
+    if 'amp' in params:
+        params['amp'].value = 1
+        params['cen'].value = 260
+        params['wid'].value = 100
+    if 'refcoef1' in params:
+        params['refcoef1'].value=1.0/(newsum+0.001)
+    if 'refcoef2' in params:
+        params['refcoef2'].value=1.0/(newsum+0.001)
+    if 'refcoef3' in params:
+        params['refcoef3'].value=1.0/(newsum+0.001)
+
+
+
+    result = overall_model.fit(pandas.to_numeric(self.absorbance), params, x = pandas.to_numeric(self.wavelengths))
+    print(result.fit_report())
+      
+
+        
     
 
 

@@ -16,7 +16,8 @@ class MyGUI:
       self.master = master
       master.title("P450 Titration Analysis")
       master.geometry('1920x1080')
-
+      self.loaded_spectra = None
+      self.reference_spectra = None
       
       #self.greet_button = Button(master, text="Greet", command=self.greet)
       #self.greet_button.pack()
@@ -49,7 +50,7 @@ class MyGUI:
       print("Greetings!")
     
     def load_spectra(self):
-      loaded_spectra = spectra.spectral_collection(load=TRUE)
+      self.loaded_spectra = loaded_spectra = spectra.spectral_collection(load=TRUE)
       print(loaded_spectra)
 
       f1=Frame(self.master)
@@ -77,11 +78,14 @@ class MyGUI:
 
 
     def load_reference(self):
-      self.ref_filename = filedialog.askopenfilename()
-      print(self.ref_filename)
-      self.ref_data=pandas.read_csv(self.ref_filename, header=None)
+      #self.ref_filename = filedialog.askopenfilename()
+      #print(self.ref_filename)
+
+      self.reference_spectra = reference_spectra = spectra.spectral_collection(load=TRUE)
+      #self.ref_data=pandas.read_csv(self.ref_filename, header=None)
     
     def baseline(self):
+        self.loaded_spectra.spectra[0].baseline_correct(self.reference_spectra, fit_scatter=False)
         return
 
     def fitsimple(self):
