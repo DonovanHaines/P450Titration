@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28010.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "P450Titration", "P450Titration\P450Titration.pyproj", "{F1D1EA83-9FB5-48B9-B483-16824491C464}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "fittest", "fittest\fittest.pyproj", "{7A852A96-7C65-4097-9684-DD14360B6083}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,8 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{F1D1EA83-9FB5-48B9-B483-16824491C464}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F1D1EA83-9FB5-48B9-B483-16824491C464}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A852A96-7C65-4097-9684-DD14360B6083}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A852A96-7C65-4097-9684-DD14360B6083}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

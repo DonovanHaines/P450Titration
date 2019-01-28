@@ -25,8 +25,8 @@ class uvvis_spectrum:
     self.avg_time=0.0
     self.baseline_method=""
     self.comments=""
-    self.wavelength=list()
-    self.absorbance=list()
+    self.wavelength=[]
+    self.absorbance=[]
   
     ####################################################################
   # borrowed from https://stackoverflow.com/questions/1535327/how-to-print-objects-of-class-using-print
@@ -34,7 +34,7 @@ class uvvis_spectrum:
     return str(self.__class__) + ": " + str(self.__dict__)   
   
 
-  def baseline_correct(self, reference_spectra=None, fit_bg=True, fit_scatter=True, fit_gaussian=True):
+  def baseline_correct(self, reference_spectra=None, fit_bg=True, fit_scatter=True, fit_gaussian=True, wave_low=300, wave_high=800):
     if reference_spectra==None:
         numref=0
         print("Numref")
@@ -47,24 +47,32 @@ class uvvis_spectrum:
         return
     #####model functions
     def bg(x, bg_val):
-        return bg_val
+        return [bg_val] * len(x)
+   
     def scatter(x, scatter_int, scatter_a, scatter_power):  #or fix scatter_power to -4
-        return scatter_int*math.log(1/(1-scatter_a*pandas.to_numeric(x)^scatter_power),base=10)
+        return scatter_int*math.log(1/(1-scatter_a*(x)^scatter_power),base=10)
+    
     def ref1(x, refcoef1):
         return refcoef1*reference_spectra.spectra[0].absorbance[bisect.bisect(reference_spectra.spectra[0].wavelength, x)]
+    
     def ref2(x, refcoef1, refcoef2):
-        return refcoef1*reference_spectra.spectra[0].absorbance[bisect.bisect(reference_spectra.spectra[0].wavelength, x)] + \
-               refcoef2*reference_spectra.spectra[1].absorbance[bisect.bisect(reference_spectra.spectra[1].wavelength, x)]
+        #xb = np.asarray(x)
+        return np.asarray([refcoef1*reference_spectra.spectra[0].absorbance[(np.abs(xt-reference_spectra.spectra[0].wavelength[mask])).idxmin()] + \
+               refcoef2*reference_spectra.spectra[1].absorbance[(np.abs(xt-reference_spectra.spectra[1].wavelength[mask])).idxmin()] \
+               for xt in x])
+    
     def ref3(x, refcoef1, refcoef2, refcoef3):
         return refcoef1*reference_spectra.spectra[0].absorbance[bisect.bisect(reference_spectra.spectra[0].wavelength, x)] + \
                refcoef2*reference_spectra.spectra[1].absorbance[bisect.bisect(reference_spectra.spectra[1].wavelength, x)] + \
                refcoef3*reference_spectra.spectra[2].absorbance[bisect.bisect(reference_spectra.spectra[2].wavelength, x)] 
+    
     def gaussian(x, amp, cen, wid):
-        "1-d gaussian: gaussian(x, amp, cen, wid)"
+      #"1-d gaussian: gaussian(x, amp, cen, wid)"
+      return [amp * np.exp(-(xt-cen)**2.0 / wid) for xt in x]
         
-        return (amp/(math.sqrt(2*math.pi)*wid)) * math.exp(-(pandas.to_numeric(x)-cen)**2 /(2*wid**2))
+        #return (amp/(math.sqrt(2*math.pi)*wid)) * math.exp(-((x)-cen)**2 /(2*wid**2))
     def null_model(x):
-        return 0
+        return 0.0
 
 
     if fit_gaussian: 
@@ -103,26 +111,36 @@ class uvvis_spectrum:
     if 'bg_val' in params:
         params['bg_val'].value = 0.0
     if 'scatter_int' in params:
-        params['scatter_int'].value = 1
+        params['scatter_int'].value = 1.0
         params['scatter_a'].value = 1.e7
         params['scatter_power'].value = -4
         params['scatter_power'].min = -4
         params['scatter_power'].max = 4
     if 'amp' in params:
-        params['amp'].value = 1
-        params['cen'].value = 260
-        params['wid'].value = 100
+        params['amp'].value = 0.001
+        params['cen'].value = 220.0
+        params['wid'].value = 400.0
     if 'refcoef1' in params:
         params['refcoef1'].value=1.0/(numref+0.001)
+        params['refcoef1'].min=0.0
     if 'refcoef2' in params:
         params['refcoef2'].value=1.0/(numref+0.001)
+        params['refcoef2'].min=0.0
     if 'refcoef3' in params:
         params['refcoef3'].value=1.0/(numref+0.001)
-
-
+        params['refcoef3'].min=0.0
+    mask = (wave_low <= self.wavelength) & (self.wavelength <= wave_high)
+    fit_x = np.asarray(self.wavelength[mask])
+    fit_y = np.asarray(self.absorbance[mask])
     print("Parameters set, preparing to fit background.")
-    result = overall_model.fit(pandas.to_numeric(self.absorbance), params, x = pandas.to_numeric(self.wavelengths))
+    print(mask)
+    print(fit_x)
+    print(fit_y)
+    result = overall_model.fit(fit_y, params, x = fit_x)
     print(result.fit_report())
+    #result.plot_fit()
+    return(result, fit_x, fit_y)
+
       
 
         
@@ -190,7 +208,10 @@ class spectral_collection:
       #this_spectrum.wl_low = min()
       xvalues=pandas.to_numeric(self.rawdata[self.number_files_loaded-1].loc[2:num_wavelength+1, count*2])
       yvalues=pandas.to_numeric(self.rawdata[self.number_files_loaded-1].loc[2:num_wavelength+1, (count*2)+1])
-      this_spectrum.wavelengths = xvalues
+      xvalues.index = np.arange(0, len(xvalues))
+      yvalues.index = np.arange(0, len(yvalues))
+      
+      this_spectrum.wavelength = xvalues
       this_spectrum.absorbance = yvalues
       this_spectrum.sample_name=(self.rawdata[self.number_files_loaded-1].loc[0, (count*2)+1])
 
