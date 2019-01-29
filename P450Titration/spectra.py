@@ -4,7 +4,7 @@ from tkinter import *
 import numpy as np
 import math
 from scipy.optimize import optimize
-from lmfit import Model
+from lmfit import Model, report_fit, report_errors
 
 import bisect
 
@@ -52,34 +52,34 @@ class uvvis_spectrum:
 
 
     if numref >= 1:
-        ref1seq = [None] * len(fit_x)
+        ref1seq = np.empty(len(fit_x))
         for count in range(len(fit_x)):
             ref1seq[count] = np.abs(fit_x[count]-reference_spectra.spectra[0].wavelength[mask]).idxmin() #precalculate indices for each wavelength
     if numref >= 2:
-        ref2seq = [None] * len(fit_x)
+        ref2seq = np.empty(len(fit_x))
         for count in range(len(fit_x)):
             ref2seq[count] = np.abs(fit_x[count]-reference_spectra.spectra[1].wavelength[mask]).idxmin() #precalculate indices for each wavelength
     if numref >= 3:
-        ref3seq = [None] * len(fit_x)
+        ref3seq = np.empty(len(fit_x))
         for count in range(len(fit_x)):
             ref3seq[count] = np.abs(fit_x[count]-reference_spectra.spectra[2].wavelength[mask]).idxmin() #precalculate indices for each wavelength
  
 
     #####model functions
     def bg(x, bg_val):
-        return [bg_val] * len(x)
+        return np.asarray([bg_val] * len(x))
    
     def scatter(x, scatter_int, scatter_a, scatter_power):  #or fix scatter_power to -4
-        return scatter_int*math.log(1/(1-scatter_a*(x)^scatter_power),base=10)
+        return np.asarray(scatter_int*math.log(1/(1-scatter_a*(x)^scatter_power),base=10))
     
     def ref1(x, refcoef1):
-        return refcoef1*reference_spectra.spectra[0].absorbance[ref1seq]
+        return np.asarray(refcoef1*reference_spectra.spectra[0].absorbance[ref1seq])
 
     def ref2(x, refcoef2):
-        return refcoef2*reference_spectra.spectra[1].absorbance[ref2seq]
+        return np.asarray(refcoef2*reference_spectra.spectra[1].absorbance[ref2seq])
     
     def ref3(x, refcoef3):
-        return refcoef3*reference_spectra.spectra[1].absorbance[ref3seq]
+        return np.asarray(refcoef3*reference_spectra.spectra[1].absorbance[ref3seq])
     
     #def ref2(x, refcoef1, refcoef2):
     #   
@@ -94,12 +94,10 @@ class uvvis_spectrum:
     
     def gaussian(x, amp, cen, wid):
       #"1-d gaussian: gaussian(x, amp, cen, wid)"
-      return [amp * np.exp(-(xt-cen)**2.0 / wid) for xt in x]
-        
-        #return (amp/(math.sqrt(2*math.pi)*wid)) * math.exp(-((x)-cen)**2 /(2*wid**2))
-    
+      return np.asarray([amp * np.exp(-(xt-cen)**2.0 / wid) for xt in x])
+     
     def null_model(x):
-        return 0.0
+        return np.zeros(len(x))
 
 
     if fit_gaussian: 
@@ -145,31 +143,38 @@ class uvvis_spectrum:
     if 'bg_val' in params:
         params['bg_val'].value = 0.0
     if 'scatter_int' in params:
-        params['scatter_int'].value = 1.0
-        params['scatter_a'].value = 1.e7
-        params['scatter_power'].value = -4
+        params.add('scatter_int', 1.0)
+        params.add('scatter_a', 1.e7)
+        params.add('scatter_power', -4)
         params['scatter_power'].min = -4
         params['scatter_power'].max = 4
     if 'amp' in params:
-        params['amp'].value = 0.001
-        params['cen'].value = 220.0
-        params['wid'].value = 400.0
+        params.add('amp', 0.001)
+        params.add('cen', 220.0)
+        params.add('wid', 400.0)
     if 'refcoef1' in params:
-        params['refcoef1'].value=1.0/(numref+0.001)
+        params.add('refcoef1', 1.0/(numref+0.001))
         params['refcoef1'].min=0.0
     if 'refcoef2' in params:
-        params['refcoef2'].value=1.0/(numref+0.001)
+        params.add('refcoef2', 1.0/(numref+0.001))
         params['refcoef2'].min=0.0
     if 'refcoef3' in params:
-        params['refcoef3'].value=1.0/(numref+0.001)
+        params.add('refcoef3', 1.0/(numref+0.001))
         params['refcoef3'].min=0.0
    
     print("Parameters set, preparing to fit background.")
     print(mask)
     print(fit_x)
     print(fit_y)
-    result = overall_model.fit(fit_y, params, x = fit_x)
+    result = overall_model.fit(fit_y, params, x = fit_x, fit_kws={'maxfev': 200})
+    print("Result.report_fit()")
     print(result.fit_report())
+    print("report_fit(result)")
+    report_fit(result)
+    print("report_fit(result.params")
+    report_fit(result.params)
+    print("report_error(result)")
+    report_errors(result)
     #result.plot_fit()
     components = result.eval_components(fit_x=fit_x)
     return(result, components, fit_x, fit_y)
