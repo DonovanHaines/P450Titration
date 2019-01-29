@@ -111,7 +111,7 @@ class MyGUI:
       toolbar.update()
       canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=TRUE)
     def baseline(self):
-      result, fit_x, fit_y = self.loaded_spectra.spectra[0].baseline_correct(self.reference_spectra, fit_bg=True, fit_scatter=False, fit_gaussian=False, wave_low=300, wave_high=800)
+      result, components, fit_x, fit_y = self.loaded_spectra.spectra[0].baseline_correct(self.reference_spectra, fit_bg=True, fit_scatter=False, fit_gaussian=True, wave_low=300, wave_high=800)
       
       resultwin = Toplevel(width=600, height=800) #make new popup window
       resultwin.wm_title("Result of first fit")
@@ -124,10 +124,18 @@ class MyGUI:
 
       myfig5 = plt.Figure(figsize=(5,5), dpi=100)
       aplot = myfig5.add_subplot(111)
-      aplot.plot(fit_x,fit_y)
-      aplot.plot(fit_x, result.init_fit, 'k--')
-      aplot.plot(fit_x, result.best_fit, 'r--')
+      aplot.plot(fit_x,fit_y, label="Data", linewidth=2)
+      aplot.plot(fit_x, result.init_fit, 'k--', label="Initial Fit")
+      aplot.plot(fit_x, result.best_fit, 'r--', label="Final Fit", linewidth=2)
       aplot.set_title("First Fit")
+      print("Plotting components")
+      for key in components:
+        print(key)
+        print(components[key])
+        if key != "null_model" : 
+          aplot.plot(fit_x, components[key], ':', label=key)
+      aplot.legend(loc='best')
+      #aplot.plot(fit_x, components[])
       canvas = FigureCanvasTkAgg(myfig5, f5)
       canvas.draw()
       canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=TRUE)

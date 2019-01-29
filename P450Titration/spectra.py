@@ -45,6 +45,26 @@ class uvvis_spectrum:
       else:
         print("Warning - Exiting baseline_correct due to wrong reference_spectra type.")
         return
+
+    mask = (wave_low <= self.wavelength) & (self.wavelength <= wave_high)
+    fit_x = np.asarray(self.wavelength[mask])
+    fit_y = np.asarray(self.absorbance[mask])
+
+
+    if numref >= 1:
+        ref1seq = [None] * len(fit_x)
+        for count in range(len(fit_x)):
+            ref1seq[count] = np.abs(fit_x[count]-reference_spectra.spectra[0].wavelength[mask]).idxmin() #precalculate indices for each wavelength
+    if numref >= 2:
+        ref2seq = [None] * len(fit_x)
+        for count in range(len(fit_x)):
+            ref2seq[count] = np.abs(fit_x[count]-reference_spectra.spectra[1].wavelength[mask]).idxmin() #precalculate indices for each wavelength
+    if numref >= 3:
+        ref3seq = [None] * len(fit_x)
+        for count in range(len(fit_x)):
+            ref3seq[count] = np.abs(fit_x[count]-reference_spectra.spectra[2].wavelength[mask]).idxmin() #precalculate indices for each wavelength
+ 
+
     #####model functions
     def bg(x, bg_val):
         return [bg_val] * len(x)
@@ -53,24 +73,31 @@ class uvvis_spectrum:
         return scatter_int*math.log(1/(1-scatter_a*(x)^scatter_power),base=10)
     
     def ref1(x, refcoef1):
-        return refcoef1*reference_spectra.spectra[0].absorbance[bisect.bisect(reference_spectra.spectra[0].wavelength, x)]
+        return refcoef1*reference_spectra.spectra[0].absorbance[ref1seq]
+
+    def ref2(x, refcoef2):
+        return refcoef2*reference_spectra.spectra[1].absorbance[ref2seq]
     
-    def ref2(x, refcoef1, refcoef2):
-        #xb = np.asarray(x)
-        return np.asarray([refcoef1*reference_spectra.spectra[0].absorbance[(np.abs(xt-reference_spectra.spectra[0].wavelength[mask])).idxmin()] + \
-               refcoef2*reference_spectra.spectra[1].absorbance[(np.abs(xt-reference_spectra.spectra[1].wavelength[mask])).idxmin()] \
-               for xt in x])
+    def ref3(x, refcoef3):
+        return refcoef3*reference_spectra.spectra[1].absorbance[ref3seq]
     
-    def ref3(x, refcoef1, refcoef2, refcoef3):
-        return refcoef1*reference_spectra.spectra[0].absorbance[bisect.bisect(reference_spectra.spectra[0].wavelength, x)] + \
-               refcoef2*reference_spectra.spectra[1].absorbance[bisect.bisect(reference_spectra.spectra[1].wavelength, x)] + \
-               refcoef3*reference_spectra.spectra[2].absorbance[bisect.bisect(reference_spectra.spectra[2].wavelength, x)] 
+    #def ref2(x, refcoef1, refcoef2):
+    #   
+    #    return refcoef1*reference_spectra.spectra[0].absorbance[ref1seq] + \
+    #           refcoef2*reference_spectra.spectra[1].absorbance[ref2seq]
+    #     
+   # 
+   # def ref3(x, refcoef1, refcoef2, refcoef3):
+   #     return refcoef1*reference_spectra.spectra[0].absorbance[ref1seq] + \
+   #            refcoef2*reference_spectra.spectra[1].absorbance[ref2seq] + \
+   #            refcoef3*reference_spectra.spectra[2].absorbance[ref2seq]
     
     def gaussian(x, amp, cen, wid):
       #"1-d gaussian: gaussian(x, amp, cen, wid)"
       return [amp * np.exp(-(xt-cen)**2.0 / wid) for xt in x]
         
         #return (amp/(math.sqrt(2*math.pi)*wid)) * math.exp(-((x)-cen)**2 /(2*wid**2))
+    
     def null_model(x):
         return 0.0
 
@@ -95,19 +122,26 @@ class uvvis_spectrum:
     if numref == 1:
         ref_part = Model(ref1)
     elif numref == 2:
-        ref_part = Model(ref2)
+        ref_part = Model(ref1) + Model(ref2)
     elif numref == 3:
-        ref_part = Model(ref3)
+        ref_part = Model(ref1) + Model(ref2) + Model(ref3)
     elif numref > 3:
-        ref_part = Model(ref3)
+        ref_part = Model(ref1) + Model(ref2) + Model(ref3)
         print("Warning: Only three reference spectra can currently be fit")
     else:
         ref_part = Model(null_model)
+
+
+    
+
 
     overall_model = ref_part + bg_part + scatter_part + gaussian_part
     params=overall_model.make_params()
     print("Fit parameters")
     print(params)
+
+
+
     if 'bg_val' in params:
         params['bg_val'].value = 0.0
     if 'scatter_int' in params:
@@ -129,9 +163,7 @@ class uvvis_spectrum:
     if 'refcoef3' in params:
         params['refcoef3'].value=1.0/(numref+0.001)
         params['refcoef3'].min=0.0
-    mask = (wave_low <= self.wavelength) & (self.wavelength <= wave_high)
-    fit_x = np.asarray(self.wavelength[mask])
-    fit_y = np.asarray(self.absorbance[mask])
+   
     print("Parameters set, preparing to fit background.")
     print(mask)
     print(fit_x)
@@ -139,7 +171,8 @@ class uvvis_spectrum:
     result = overall_model.fit(fit_y, params, x = fit_x)
     print(result.fit_report())
     #result.plot_fit()
-    return(result, fit_x, fit_y)
+    components = result.eval_components(fit_x=fit_x)
+    return(result, components, fit_x, fit_y)
 
       
 
