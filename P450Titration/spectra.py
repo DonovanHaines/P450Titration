@@ -34,7 +34,7 @@ class uvvis_spectrum:
     return str(self.__class__) + ": " + str(self.__dict__)   
   
 
-  def baseline_correct(self, reference_spectra=None, fit_bg=True, fit_scatter=True, fit_gaussian=True, wave_low=300, wave_high=800):
+  def baseline_correct(self, reference_spectra=None, fit_bg=True, fit_scatter=True, fit_gaussian=True, wave_low=300, wave_high=800, hold_scatter_power=True):
     if reference_spectra==None:
         numref=0
         print("Numref")
@@ -70,7 +70,7 @@ class uvvis_spectrum:
         return np.asarray([bg_val] * len(x))
    
     def scatter(x, scatter_int, scatter_a, scatter_power):  #or fix scatter_power to -4
-        return np.asarray(scatter_int*math.log(1/(1-scatter_a*(x)^scatter_power),base=10))
+        return np.asarray(scatter_int*np.log10(1/(1-scatter_a*(x**scatter_power))))
     
     def ref1(x, refcoef1):
         return np.asarray(refcoef1*reference_spectra.spectra[0].absorbance[ref1seq])
@@ -141,13 +141,19 @@ class uvvis_spectrum:
 
 
     if 'bg_val' in params:
-        params['bg_val'].value = 0.0
+        params.add('bg_val', 0.0)
     if 'scatter_int' in params:
-        params.add('scatter_int', 1.0)
-        params.add('scatter_a', 1.e7)
+        params.add('scatter_int', 1.0, min=0)
+        params.add('scatter_delta', 0.5, max=1.0)
         params.add('scatter_power', -4)
-        params['scatter_power'].min = -4
-        params['scatter_power'].max = 4
+        params.add('scatter_a', expr='scatter_delta/(300**scatter_power)') #delta allows inequality that prevents Scatter function returning NaN's
+        
+        if hold_scatter_power:
+          params['scatter_power'].vary = False
+        else:
+          params['scatter_power'].min = -4
+          params['scatter_power'].max = 4
+
     if 'amp' in params:
         params.add('amp', 0.001)
         params.add('cen', 220.0)
@@ -197,6 +203,7 @@ class spectral_collection:
     self.number_files_loaded=0
     self.spectra=list()
     self.filenames=list()
+    self.sample_names=list()
     self.rawdata=list()
     self.df = pandas.DataFrame()
     if load : self.load(filename)
@@ -251,8 +258,8 @@ class spectral_collection:
       
       this_spectrum.wavelength = xvalues
       this_spectrum.absorbance = yvalues
-      this_spectrum.sample_name=(self.rawdata[self.number_files_loaded-1].loc[0, (count*2)+1])
-
+      this_spectrum.sample_name=(self.rawdata[self.number_files_loaded-1].loc[0, (count*2)])
+      self.sample_names.append(this_spectrum.sample_name)
       self.spectra.append(this_spectrum)
       self.number_spectra = self.number_spectra+1
 

@@ -7,7 +7,8 @@
     <StartupFile>P450Titration.py</StartupFile>
     <SearchPath>
     </SearchPath>
-    <WorkingDirectory>C:\Users\donov\source\repos\P450Titration\P450Titration</WorkingDirectory>
+    <WorkingDirectory>
+    </WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>P450Titration</Name>
     <RootNamespace>P450Titration</RootNamespace>

@@ -41,6 +41,7 @@ class MyGUI:
       
       new_item2=Menu(menu)
       new_item2.add_command(label="Baseline Correct", command=self.baseline)
+      new_item2.add_command(label="Baseline Correct All", command=self.baseline_all)
       new_item2.add_command(label="Fit simple binding", command=self.fitsimple)
       new_item2.add_command(label="Fit coop binding", command=self.fitcoop)
       menu.add_cascade(label="Analyze", menu=new_item2)
@@ -110,8 +111,48 @@ class MyGUI:
       toolbar = NavigationToolbar2Tk(canvas, f2)
       toolbar.update()
       canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=TRUE)
+
+    def baseline_all(self):
+        base_win=Toplevel(width=600, height=800) #make new popup window
+
+        use_bg = IntVar()
+        use_gauss = IntVar()
+        use_scatter = IntVar()
+        use_ref1 = IntVar()
+        use_ref2 = IntVar()
+        use_ref3 = IntVar()
+        select_var = StringVar()
+
+        selection_frame = Frame(base_win)
+
+        #sample_names=list()
+        #for this_spectrum in self.loaded_spectra.spectra:
+        #    sample_names.append(this_spectrum.sample_name)
+
+        w = OptionMenu(selection_frame, select_var, self.loaded_spectra.sample_names)
+        w.pack()
+
+        b1 = Checkbutton(selection_frame, text="Constant Background", variable = use_bg)
+        b1.pack()
+        b2 = Checkbutton(selection_frame, text="Nearby Gaussian Background", variable = use_gauss)
+        b2.pack()
+        b3 = Checkbutton(selection_frame, text="Scattering Background", variable = use_scatter)
+        b3.pack()
+        b4 = Checkbutton(selection_frame, text="Reference #1", variable = use_ref1)
+        b4.pack()
+        b5 = Checkbutton(selection_frame, text="Reference #2", variable = use_ref2)
+        b5.pack()
+        b6 = Checkbutton(selection_frame, text="Reference #3", variable = use_ref3)
+        b6.pack()
+
+        butt_ok = Button(selection_frame, text="Run", command = lambda: self.baseline())
+        butt_ok.pack()
+
+        selection_frame.pack()
+
+
     def baseline(self):
-      result, components, fit_x, fit_y = self.loaded_spectra.spectra[0].baseline_correct(self.reference_spectra, fit_bg=True, fit_scatter=False, fit_gaussian=True, wave_low=300, wave_high=800)
+      result, components, fit_x, fit_y = self.loaded_spectra.spectra[0].baseline_correct(self.reference_spectra, fit_bg=True, fit_scatter=True, fit_gaussian=False, wave_low=300, wave_high=800)
       
       resultwin = Toplevel(width=600, height=800) #make new popup window
       resultwin.wm_title("Result of first fit")
