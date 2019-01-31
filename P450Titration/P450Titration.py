@@ -274,9 +274,10 @@ class MyGUI:
         output_frame = Frame(base_win, height=100)
         output_frame.grid(column = 0, row = 1, padx=20, pady=20, sticky='NSWE')
         results_scrollbar = Scrollbar(output_frame)
-        results_scrollbar.grid(column = 2, sticky='NS')
+        results_scrollbar.grid(column = 1, row = 0, sticky='NS')
         textbuffer = Text(output_frame, yscrollcommand = results_scrollbar.set)
-        textbuffer.grid(column = 0, sticky='NSWE')
+        textbuffer.grid(column = 0, row = 0, sticky='NSWE')
+        results_scrollbar.config(command=textbuffer.yview)
         quote = """HAMLET: To be, or not to be--that is the question:
         Whether 'tis nobler in the mind to suffer
         The slings and arrows of outrageous fortune
