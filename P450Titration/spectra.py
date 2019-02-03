@@ -1,8 +1,9 @@
-import pandas
-from tkinter import *
-
+import pandas as pd
+import tkinter as tk
+from tkinter import filedialog
 import numpy as np
 import math
+
 from scipy.optimize import optimize
 from lmfit import Model, report_fit, report_errors
 
@@ -27,12 +28,18 @@ class uvvis_spectrum:
     self.comments=""
     self.wavelength=[]
     self.absorbance=[]
+    self.last_fit_result=None
+    
   
     ####################################################################
   # borrowed from https://stackoverflow.com/questions/1535327/how-to-print-objects-of-class-using-print
   def __str__(self):
     return str(self.__class__) + ": " + str(self.__dict__)   
   
+  def last_fit_was_gaussian():
+    if self.last_fit_result==None: 
+        return False
+    
 
   def baseline_correct(self, reference_spectra=None, fit_bg=True, fit_scatter=True, fit_gaussian=True, wave_low=300, wave_high=800, hold_scatter_power=True):
     if reference_spectra==None:
@@ -183,6 +190,7 @@ class uvvis_spectrum:
     report_errors(result)
     #result.plot_fit()
     components = result.eval_components(fit_x=fit_x)
+    self.last_fit_result = list([result, components, fit_x, fit_y])
     return(result, components, fit_x, fit_y)
 
       
@@ -198,14 +206,14 @@ class uvvis_spectrum:
 ######################################################################
 ######################################################################
 class spectral_collection:
-  def __init__(self, filename="", load=FALSE):
+  def __init__(self, filename="", load=False):
     self.number_spectra=0
     self.number_files_loaded=0
     self.spectra=list()
     self.filenames=list()
     self.sample_names=list()
     self.rawdata=list()
-    self.df = pandas.DataFrame()
+    self.df = pd.DataFrame()
     if load : self.load(filename)
   
   ####################################################################
@@ -222,7 +230,7 @@ class spectral_collection:
     
     #Add filename to list of filenames (because can import more files later)
     self.filenames.append(filename)
-    self.rawdata.append(pandas.read_csv(filename, header=None))
+    self.rawdata.append(pd.read_csv(filename, header=None))
     self.number_files_loaded = self.number_files_loaded + 1
 
 
@@ -251,8 +259,8 @@ class spectral_collection:
       this_spectrum = uvvis_spectrum()
       this_spectrum.filename = filename
       #this_spectrum.wl_low = min()
-      xvalues=pandas.to_numeric(self.rawdata[self.number_files_loaded-1].loc[2:num_wavelength+1, count*2])
-      yvalues=pandas.to_numeric(self.rawdata[self.number_files_loaded-1].loc[2:num_wavelength+1, (count*2)+1])
+      xvalues=pd.to_numeric(self.rawdata[self.number_files_loaded-1].loc[2:num_wavelength+1, count*2])
+      yvalues=pd.to_numeric(self.rawdata[self.number_files_loaded-1].loc[2:num_wavelength+1, (count*2)+1])
       xvalues.index = np.arange(0, len(xvalues))
       yvalues.index = np.arange(0, len(yvalues))
       
@@ -268,13 +276,13 @@ class spectral_collection:
         yvalues.name="AU:"+names[count*2]
         #print(type(xvalues))
         
-        tempdf = pandas.concat([xvalues,yvalues], axis=1, ignore_index=True)
+        tempdf = pd.concat([xvalues,yvalues], axis=1, ignore_index=True)
         tempdf.columns=[xvalues.name, yvalues.name] # not sure why this is necessary, but seems to be
         #print(tempdf)
         if count==0:
           self.df=tempdf
         else:
-          self.df = pandas.concat([self.df,tempdf], axis=1)
+          self.df = pd.concat([self.df,tempdf], axis=1)
           #print("Appended df")
           #print("xvalues")
           #print(xvalues[0:3])
