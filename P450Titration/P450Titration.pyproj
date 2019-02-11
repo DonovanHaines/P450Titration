@@ -23,6 +23,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="tkinterdouble.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="P450Titration.py" />
     <Compile Include="pandastabletest.py">
       <SubType>Code</SubType>
