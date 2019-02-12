@@ -424,7 +424,8 @@ class FitAllWindow(tk.Toplevel):
         self.b_ok.grid(columnspan=num_selection_columns, row=26)
 
         self.selection_frame.grid(column = 0, row =0, padx=30, pady=30)
-        
+        self.update_fields_from_control(fit_control_dict)
+
         #########################################
         #Now define results and graph pane
         self.output_frame = tk.Frame(self, height=100)
@@ -456,6 +457,33 @@ class FitAllWindow(tk.Toplevel):
         self.textbuffer.insert(tk.END, result.fit_report())
         self.textbuffer.see("end")
         #now update the graph and paramater windows, #TODO
+
+        myfig5 = plt.Figure(figsize=(5,5), dpi=100)
+        aplot = myfig5.add_subplot(111)
+        aplot.plot(fit_x,fit_y, label="Data", linewidth=2)
+        aplot.plot(fit_x, result.init_fit, 'k--', label="Initial Fit")
+        aplot.plot(fit_x, result.best_fit, 'r--', label="Final Fit", linewidth=2)
+        aplot.set_title("Fit of {0}".format(self.select_var.get()))
+        print("Plotting components")
+        for key in components:
+            print(key)
+            print(components[key])
+            if key != "null_model" : 
+                aplot.plot(fit_x, components[key], ':', label=key)
+                aplot.legend(loc='best')
+        
+        #clear the self.graph_frame
+        for widget in self.graph_frame.winfo_children():
+            widget.destroy()
+
+        #now set up new graph
+        canvas = FigureCanvasTkAgg(myfig5, self.graph_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        toolbar = NavigationToolbar2Tk(canvas, self.graph_frame)
+        toolbar.update()
+        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
 
         return
 
@@ -521,16 +549,16 @@ class FitAllWindow(tk.Toplevel):
         return_dict["fit_gaussian"] = self.bv_use_gauss.get() 
         return_dict["fit_scatter"] = self.bv_use_scatter .get()
         return_dict["fit_ref1"] = self.bv_use_ref1.get()
-        return_dict["fit_re2"] = self.bv_use_ref2 .get()
-        return_dict["fit_ref3"] = self.bv_use_ref3 .get()
+        return_dict["fit_re2"] = self.bv_use_ref2.get()
+        return_dict["fit_ref3"] = self.bv_use_ref3.get()
         #self.select_var 
-        return_dict["run_all"] = self.bv_run_all .get()
+        return_dict["run_all"] = self.bv_run_all.get()
         #constant background
         return_dict["bg_val"] = self.ev_bg_val.get()
         return_dict["bg_val_fixed"] = self.bv_bg_val_fixed.get()
         #scatter background
         return_dict["scatter_int"] = self.ev_scatter_int.get()
-        return_dict["scatter_int.fixed"] = self.bv_scatter_int_fixed.get()
+        return_dict["scatter_int_fixed"] = self.bv_scatter_int_fixed.get()
         return_dict["scatter_a"] = self.ev_scatter_a.get()
         return_dict["scatter_a_fixed"] = self.bv_scatter_a_fixed.get()
         return_dict["scatter_power"] = self.ev_scatter_power.get()
@@ -541,10 +569,86 @@ class FitAllWindow(tk.Toplevel):
         return_dict["guassian_wid"] = self.ev_gaussian_wid.get()
         return_dict["guassian_wid_fixed"] = self.bv_gaussian_wid_fixed.get()
         return_dict["guassian_cen"] = self.ev_gaussian_cen.get()
-        return_dict["guassian_cen.fixed"] = self.bv_gaussian_cen_fixed.get()
+        return_dict["guassian_cen_fixed"] = self.bv_gaussian_cen_fixed.get()
         return_dict["wavelength_low"] = self.ev_wavelength_low.get()
         return_dict["wavelength_high"] = self.ev_wavelength_high.get()
         return return_dict
+
+    ##############################################################################################################################
+    ##############################################################################################################################
+    def update_fields_from_control(self, fit_con=None): 
+        # Update the fit fields with the values in a fit control dictionary
+        if fit_con == None:
+            fit_con = {
+                "empty_dict": True #to avoid None type erorrs when .get-ting from it.
+                }
+        
+        default_dict = { #default values
+                "fit_bg": True,
+                "fit_gaussian": False,
+                "fit_scatter": False,
+                "fit_ref1": True,
+                "fit_ref2": True,
+                "fit_ref3": True,
+                "bg_val": 0.0,
+                "scatter_int": 0.0,
+                "scatter_int_fixed": False,
+                "scatter_a": 1.0e4,
+                "scatter_a-fixed": True,
+                "scatter_power": 4.0,
+                "scatter_power_fixed": False,
+                "ref_coef1": 0.34,
+                "ref_coef1_fixed": False,
+                "ref_coef1_min": 0.0,
+                "ref_coef2": 0.33,
+                "ref_coef2_fixed": False,
+                "ref_coef2_min": 0.0,
+                "ref_coef3": 0.33,
+                "ref_coef3_fixed": False,
+                "ref_coef3_min": 0.0,
+                "gaussian_int": 0.0,
+                "gaussian_int_fixed": False,
+                "gaussian_int_min": 0.0,
+                "gaussian_cen": 260.0,
+                "gaussian_cen_fixed": False,
+                "gaussian_cen_min": 0.0,
+                "guassian_cen_max": 1500.0,
+                "gaussian_wid": 100.0,
+                "guassian_wid_fixed": False,
+                "gaussian-wid_min": 0.0,
+                "guassian_wid_max": 1000.0,
+                "wavelength_low": 0.0,
+                "wavelength_high": 10000.0,
+                "run_all": False}
+        self.bv_use_bg.set(fit_con.get("fit_bg", default_dict.get("fit_bg", True)))
+        self.bv_use_gauss.set(fit_con.get("fit_gaussian", default_dict.get("fit_gaussian", False))) 
+        self.bv_use_scatter.set(fit_con.get("fit_scatter", default_dict.get("fit_scatter", False)))
+        self.bv_use_ref1.set(fit_con.get("fit_ref1", default_dict.get("fit_ref1", True)))
+        self.bv_use_ref2.set(fit_con.get("fit_ref2", default_dict.get("fit_ref2", True)))
+        self.bv_use_ref3.set(fit_con.get("fit_ref3", default_dict.get("fit_ref3", False)))
+        #self.select_var 
+        self.bv_run_all.set(fit_con.get("run_all", default_dict.get("run_all", True)))
+        #constant background
+        self.ev_bg_val.set(fit_con.get("bg_val", default_dict.get("bg_val", 0.0)))
+        self.bv_bg_val_fixed.set(fit_con.get("bg_val_fixed", default_dict.get("bg_val_fixed", False)))
+        #scatter background
+        self.ev_scatter_int.set(fit_con.get("scatter_int", default_dict.get("scatter_int", 0.0)))
+        self.bv_scatter_int_fixed.set(fit_con.get("scatter_int_fixed", default_dict.get("scatter_int_fixed", 0.0)))
+        self.ev_scatter_a.set(fit_con.get("scatter_a", default_dict.get("scatter_a", 1e4)))
+        self.bv_scatter_a_fixed.set(fit_con.get("scatter_a_fixed", default_dict.get("scatter_a_fixed", True)))
+        self.ev_scatter_power.set(fit_con.get("scatter_power", default_dict.get("scatter_power", 4.0)))
+        self.bv_scatter_power_fixed.set(fit_con.get("scatter_power_fixed", default_dict.get("scatter_power_fixed", False)))
+        #Gaussian Background
+        self.ev_gaussian_amp.set(fit_con.get("guassian_amp", default_dict.get("guassian_amp", 0.0)))
+        self.bv_gaussian_amp_fixed.set(fit_con.get("guassian_amp_fixed", default_dict.get("guassian_amp_fixed", False)))
+        self.ev_gaussian_wid.set(fit_con.get("guassian_wid", default_dict.get("guassian_wid", 50.0)))
+        self.bv_gaussian_wid_fixed.set(fit_con.get("guassian_wid_fixed", default_dict.get("guassian_wid_fixed", False)))
+        self.ev_gaussian_cen.set(fit_con.get("guassian_cen", default_dict.get("guassian_cen", 0.0)))
+        self.bv_gaussian_cen_fixed.set(fit_con.get("guassian_cen_fixed", default_dict.get("guassian_cen_fixed", False)))
+        self.ev_wavelength_low.set(fit_con.get("wavelength_low", default_dict.get("wavelength_low", 0.0)))
+        self.ev_wavelength_high.set(fit_con.get("wavelength_high", default_dict.get("wavelength_high", 0.0)))
+        return 
+
 ##################################################################################################################################
 ##################################################################################################################################
 ##################################################################################################################################
