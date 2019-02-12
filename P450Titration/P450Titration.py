@@ -22,7 +22,7 @@ import spectra
 ##################################################################################################################################
 ##################################################################################################################################
 
-class MyGUI:
+class MyGUI(tk.Tk):
     def __init__(self,master):
       self.master = master
       master.title("P450 Titration Analysis")
@@ -104,7 +104,7 @@ class MyGUI:
     ##################################################################################################################################
     ##################################################################################################################################
     def baseline_all(self):
-        fit_all_window = FitAllWindow(master=self, spectra = self.loaded_spectra, reference_spectra = self.reference_spectra)
+        fit_all_window = FitAllWindow(master=self.master, spectra = self.loaded_spectra, reference_spectra = self.reference_spectra)
 
 
     ##################################################################################################################################
