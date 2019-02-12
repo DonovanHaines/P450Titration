@@ -16,7 +16,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 import spectra
 
-class FitAllWindow(tk.Toplevel):
+class TitrationWindow(tk.Toplevel):
     def __init__(self,master=None, spectra=None, reference_spectra=None, width=600, height=800, fit_control_dict=None):
         tk.Toplevel.__init__(self, width=width, height=height)
     self.master=master
@@ -41,3 +41,5 @@ class FitAllWindow(tk.Toplevel):
      new_item3=tk.Menu(menu)
      new_item3.add_command(label="About this program", command=self.about)
      menu.add_cascade(label="Help", menu=new_item3)
+    
+     # Now to add controls
