@@ -19,27 +19,35 @@ import spectra
 class TitrationWindow(tk.Toplevel):
     def __init__(self,master=None, spectra=None, reference_spectra=None, width=600, height=800, fit_control_dict=None):
         tk.Toplevel.__init__(self, width=width, height=height)
-    self.master=master
-    self.loaded_spectra=spectra
-    self.reference_spectra=reference_spectra
+        
+        self.master=master
+        self.loaded_spectra=spectra
+        self.reference_spectra=reference_spectra
     
-    # Set up the menu system
-     menu=tk.Menu(master)
-     new_item=tk.Menu(menu)
-     new_item.add_command(label="Load Volume Data", command=self.load_volumes)
-     new_item.add_command(label="Save Table", command=self.save_table)
-     new_item.add_command(label="Exit", command=master.destroy)
-     menu.add_cascade(label='File', menu=new_item)
-     master.config(menu=menu)
+        #   Set up the menu system
+        menu=tk.Menu(self)
+        new_item=tk.Menu(menu)
+        new_item.add_command(label="Load Volume Data", command=self.load_volumes)
+        new_item.add_command(label="Save Table", command=self.save_table)
+        new_item.add_command(label="Exit", command=master.destroy)
+        menu.add_cascade(label='File', menu=new_item)
+        master.config(menu=menu)
      
-     new_item2=tk.Menu(menu)
-     new_item2.add_command(label="Simple Fit", command=self.fit_simple)
-     new_item2.add_command(label="Cooperative Fit", command=self.fit_coop)
+        new_item2=tk.Menu(menu)
+        new_item2.add_command(label="Simple Fit", command=self.fit_simple)
+        new_item2.add_command(label="Cooperative Fit", command=self.fit_coop)
 
-     menu.add_cascade(label="Fit", menu=new_item2)
+        menu.add_cascade(label="Fit", menu=new_item2)
      
-     new_item3=tk.Menu(menu)
-     new_item3.add_command(label="About this program", command=self.about)
-     menu.add_cascade(label="Help", menu=new_item3)
+        new_item3=tk.Menu(menu)
+        new_item3.add_command(label="About this program", command=self.about)
+        menu.add_cascade(label="Help", menu=new_item3)
     
-     # Now to add controls
+        # Now to add controls
+        rows = spectra.number_spectra
+        column_names = ['Total_Volume', 'Other_Volume', 'Enzyme_Volume', 'Substrate_Volume',
+                        'Sub_Stock','Enz_Stock', 'S_Total', 'Enz_Total']
+
+        self.data = pd.DataFrame(np.nan, index=spectra.sample_names, columns=column_names)
+        pt = pdt.Table(self, dataframe=df, showtoolbar=True, showstatusbar=True)
+

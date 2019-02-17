@@ -14,7 +14,10 @@ import matplotlib.pyplot as plt
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
+import titrationwindow
 import spectra
+
+
 
 ##################################################################################################################################
 ##################################################################################################################################
@@ -42,8 +45,8 @@ class MyGUI(tk.Tk):
       new_item2=tk.Menu(menu)
       new_item2.add_command(label="Baseline Correct", command=self.baseline)
       new_item2.add_command(label="Baseline Correct All", command=self.baseline_all)
-      new_item2.add_command(label="Fit simple binding", command=self.fitsimple)
-      new_item2.add_command(label="Fit coop binding", command=self.fitcoop)
+      new_item2.add_command(label="Fit  binding", command=self.fitsimple)
+      #new_item2.add_command(label="Fit coop binding", command=self.fitcoop)
       menu.add_cascade(label="Analyze", menu=new_item2)
 
       new_item3=tk.Menu(menu)
@@ -81,6 +84,7 @@ class MyGUI(tk.Tk):
       canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
 
+    ##################################################################################################################################
     def load_reference(self):
         self.reference_spectra = reference_spectra = spectra.spectral_collection(load=True)
         df = reference_spectra.df
@@ -187,7 +191,7 @@ class MyGUI(tk.Tk):
 ##################################################################################################################################
 ##################################################################################################################################
     def fitsimple(self):
-   
+      fit_titration_window = titrationwindow.TitrationWindow(master=self, spectra=self.spectra, reference_spectra=self.reference_spectra)
       return
 ##################################################################################################################################
 ##################################################################################################################################

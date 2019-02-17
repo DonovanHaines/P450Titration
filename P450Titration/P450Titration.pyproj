@@ -7,8 +7,7 @@
     <StartupFile>P450Titration.py</StartupFile>
     <SearchPath>
     </SearchPath>
-    <WorkingDirectory>
-    </WorkingDirectory>
+    <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>P450Titration</Name>
     <RootNamespace>P450Titration</RootNamespace>
@@ -23,6 +22,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="titrationwindow.py" />
     <Compile Include="tkinterdouble.py">
       <SubType>Code</SubType>
     </Compile>
