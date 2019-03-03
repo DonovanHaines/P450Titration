@@ -26,21 +26,23 @@ import spectra
 ##################################################################################################################################
 
 class MyGUI(tk.Tk):
-    def __init__(self,master):
-      self.master = master
-      master.title("P450 Titration Analysis")
-      master.geometry('1920x1080')
+    def __init__(self, *args, **kwargs):
+      tk.Tk.__init__(self, *args, **kwargs)
+      #self.master = master
+      #master = self
+      self.title("P450 Titration Analysis")
+      self.geometry('1920x1080')
       self.loaded_spectra = None
       self.reference_spectra = None
        
       # Set up the menu system
-      menu=tk.Menu(master)
+      menu=tk.Menu(self)
       new_item=tk.Menu(menu)
       new_item.add_command(label="Load Spectra", command=self.load_spectra)
       new_item.add_command(label="Load Reference Spectra", command=self.load_reference)
-      new_item.add_command(label="Exit", command=master.destroy)
+      new_item.add_command(label="Exit", command=self.destroy)
       menu.add_cascade(label='File', menu=new_item)
-      master.config(menu=menu)
+      self.config(menu=menu)
             
       new_item2=tk.Menu(menu)
       new_item2.add_command(label="Baseline Correct", command=self.baseline)
@@ -60,14 +62,14 @@ class MyGUI(tk.Tk):
       self.loaded_spectra = loaded_spectra = spectra.spectral_collection(load=True)
       print(loaded_spectra)
 
-      f1=tk.Frame(self.master, width=400)
+      f1=tk.Frame(self, width=400)
       f1.pack(side = tk.LEFT, fill=tk.Y,expand=0)
       df = loaded_spectra.df
       pt = pdt.Table(f1, dataframe=df,
                                     showtoolbar=True, showstatusbar=True)
       pt.show()
 
-      f2 = tk.Frame(self.master)
+      f2 = tk.Frame(self)
       f2.pack(side = tk.TOP, fill = tk.BOTH, expand=1)
 
       myfig = plt.Figure(figsize=(5,5), dpi=100)
@@ -89,7 +91,7 @@ class MyGUI(tk.Tk):
         self.reference_spectra = reference_spectra = spectra.spectral_collection(load=True)
         df = reference_spectra.df
       
-        f2 = tk.Frame(self.master)
+        f2 = tk.Frame(self)
         f2.pack(side = tk.BOTTOM, fill = tk.BOTH, expand=1)
 
         myfig = plt.Figure(figsize=(5,5), dpi=100)
@@ -108,7 +110,7 @@ class MyGUI(tk.Tk):
     ##################################################################################################################################
     ##################################################################################################################################
     def baseline_all(self):
-        fit_all_window = FitAllWindow(master=self.master, spectra = self.loaded_spectra, reference_spectra = self.reference_spectra)
+        fit_all_window = FitAllWindow(master=self, spectra = self.loaded_spectra, reference_spectra = self.reference_spectra)
 
 
     ##################################################################################################################################
@@ -191,7 +193,7 @@ class MyGUI(tk.Tk):
 ##################################################################################################################################
 ##################################################################################################################################
     def fitsimple(self):
-      fit_titration_window = titrationwindow.TitrationWindow(master=self, spectra=self.spectra, reference_spectra=self.reference_spectra)
+      fit_titration_window = titrationwindow.TitrationWindow(master=self, spectra=self.loaded_spectra, reference_spectra=self.reference_spectra)
       return
 ##################################################################################################################################
 ##################################################################################################################################
@@ -664,9 +666,10 @@ class FitAllWindow(tk.Toplevel):
 # Main
 
 if __name__ == '__main__':
-    root = tk.Tk()
-    my_gui = MyGUI(root)
-    root.mainloop()
+    #root = tk.Tk()
+    my_gui = MyGUI()
+    
+    my_gui.mainloop()
 
 
 
