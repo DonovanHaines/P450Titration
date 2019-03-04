@@ -271,7 +271,12 @@ class uvvis_spectrum:
   ######################################################################
   def iter_monitor(self, params, iter, resid, *args, **kws):
       print("Iteration no. {0} SSR: {1}".format(iter, sum(resid*resid)))
-      
+
+  ######################################################################
+  ######################################################################
+  def get_abs(self, wavelength=418.0):
+      answerindex = min(range(len(self.wavelength)), key=lambda i: abs(self.wavelength[i]-wavelength))
+      return self.absorbance[answerindex]
 
 ######################################################################
 ######################################################################
@@ -294,7 +299,15 @@ class spectral_collection:
   # borrowed from https://stackoverflow.com/questions/1535327/how-to-print-objects-of-class-using-print
   def __str__(self):
     return str(self.__class__) + ": " + str(self.__dict__) 
-    
+  
+  ####################################################################
+  def get_abs(self, wavelength=418.0):
+      answers=list()
+      for spectrum in self.spectra:
+          answers.append(spectrum.get_abs(wavelength))
+      answer_df = pd.DataFrame(answers, index = self.sample_names, columns = ["ABS{0:.1f}".format(wavelength) ] )
+      return answer_df
+
   ####################################################################
   def load(self, filename="", generatedf=True):
     #load a csv file from the Cary50

@@ -45,8 +45,8 @@ class MyGUI(tk.Tk):
       self.config(menu=menu)
             
       new_item2=tk.Menu(menu)
-      new_item2.add_command(label="Baseline Correct", command=self.baseline)
-      new_item2.add_command(label="Baseline Correct All", command=self.baseline_all)
+      new_item2.add_command(label="Baseline Correct", command=self.baseline_all)
+      #new_item2.add_command(label="Baseline Correct All", command=self.baseline_all)
       new_item2.add_command(label="Fit  binding", command=self.fitsimple)
       #new_item2.add_command(label="Fit coop binding", command=self.fitcoop)
       menu.add_cascade(label="Analyze", menu=new_item2)
@@ -450,9 +450,20 @@ class FitAllWindow(tk.Toplevel):
     ##############################################################################################################################
     ##############################################################################################################################
     def baseline_fit_run(self):
+        if not self.bv_run_all.get():
+           self.baseline_fit_run_each(self.get_spectrum_no())
+           return
+        for spec_no in range(0,self.loaded_spectra.number_spectra):
+           self.baseline_fit_run_each(spec_no)
+           return
+        #TODO 3-31-19
+
+    ##############################################################################################################################
+    ##############################################################################################################################
+    def baseline_fit_run_each(self, spectrum_no):
         this_control_dict = self.get_control_dict()
         print(this_control_dict)
-        result, components, fit_x, fit_y, result_control = self.loaded_spectra.spectra[self.get_spectrum_no()].baseline_correct(self.reference_spectra, control = this_control_dict)
+        result, components, fit_x, fit_y, result_control = self.loaded_spectra.spectra[spectrum_no].baseline_correct(self.reference_spectra, control = this_control_dict)
         self.textbuffer.see("end")
         self.textbuffer.insert(tk.END, "\n")
         self.textbuffer.insert(tk.END, "*******************************************************\n")

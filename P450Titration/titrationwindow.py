@@ -134,12 +134,30 @@ class TitrationWindow(tk.Toplevel):
         return
     
     def add_col_abs(self):
-        tk.messagebox.showinfo("OOps!", "My apologies, this is not yet implemented.")
+        wavelength_to_fetch = tk.simpledialog.askfloat("Wavelength", "What wavelength?", parent=self, minvalue=0.0, maxvalue=10000)
+        answer_to_return = self.loaded_spectra.get_abs(wavelength_to_fetch)
+        
+        self.pt.model.df[answer_to_return.columns[0]] = answer_to_return
+        self.pt.update()
+        self.pt.redraw()
         return
 
     def add_col_diff(self):
-        tk.messagebox.showinfo("OOps!", "My apologies, this is not yet implemented.")
-        return
+        wavelength_to_fetch = tk.simpledialog.askfloat("First Wavelength", "What wavelength (first, or positive, wavlength)?", parent=self, minvalue=0.0, maxvalue=10000)
+        answer_to_return = self.loaded_spectra.get_abs(wavelength_to_fetch)
+        wavelength_to_fetch2 = tk.simpledialog.askfloat("First Wavelength", "What wavelength (second, or negative, wavlength)?", parent=self, minvalue=0.0, maxvalue=10000)
+        answer_to_return2 = self.loaded_spectra.get_abs(wavelength_to_fetch2)
+        print(answer_to_return)
+        print(answer_to_return2)
+        answer_to_return_diff = pd.DataFrame(answer_to_return.values - answer_to_return2.values, columns=["{0}-{1}".format(answer_to_return.columns.values[0], answer_to_return2.columns.values[0])],
+                                             index = answer_to_return.index)
+        print(answer_to_return_diff)
+        #answer_to_return_diff.columns =["{0}-{1}".format(answer_to_return.columns, answer_to_return2.columns)]
+        self.pt.model.df[answer_to_return_diff.columns[0]] = answer_to_return_diff
+        self.pt.update()
+        self.pt.redraw()
+        return        
+
 
     def add_col_ref(self):
         tk.messagebox.showinfo("OOps!", "My apologies, this is not yet implemented.")
