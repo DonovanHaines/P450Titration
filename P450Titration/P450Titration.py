@@ -451,11 +451,11 @@ class FitAllWindow(tk.Toplevel):
     ##############################################################################################################################
     def baseline_fit_run(self):
         if not self.bv_run_all.get():
-           self.baseline_fit_run_each(self.get_spectrum_no())
-           return
+            self.baseline_fit_run_each(self.get_spectrum_no())
+            return
         for spec_no in range(0,self.loaded_spectra.number_spectra):
-           self.baseline_fit_run_each(spec_no)
-           return
+            self.baseline_fit_run_each(spec_no)
+        return
         #TODO 3-31-19
 
     ##############################################################################################################################
